@@ -1,0 +1,60 @@
+---
+- name: Install Docker Engine and Docker Compose
+  hosts: docker
+  become: true
+  tasks:
+    - name: Install Docker dependencies
+      yum:
+        name: 
+        - yum-utils
+        - device-mapper-persistent-data
+        - lvm2
+        state: present
+
+    - name: Add Docker GPG key
+      rpm_key:
+        key: https://download.docker.com/linux/centos/gpg
+        state: present
+
+    - name: Add Docker repository
+      yum_repository:
+        name: docker-ce
+        description: Docker CE Stable - $basearch
+        baseurl: https://download.docker.com/linux/centos/7/$basearch/stable
+        gpgcheck: yes
+        gpgkey: https://download.docker.com/linux/centos/gpg
+        enabled: yes
+
+    - name: Install Docker Engine
+      yum:
+        name: docker-ce
+        state: present
+
+    - name: Install Docker Compose
+      get_url:
+        url:  https://github.com/docker/compose/releases/latest/download/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+        
+    - name: Start and Enable Docker service
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Install Git
+      yum:
+        name: git
+        state: present
+
+
+- name: Clone code from GitHub
+  hosts: docker
+  become: true
+  tasks:
+    - name: Clone code repository
+      git:
+        repo: https://github.com/mirzoziyotek/docker_compose
+        dest: /ansible/git_code_copy
+        clone: yes
+
